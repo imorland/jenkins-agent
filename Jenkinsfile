@@ -11,6 +11,11 @@ pipeline {
         AGENT_IMAGE_NAME        = 'jenkins-agent'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Set up QEMU and Docker Buildx') {
             steps {
                 script {
