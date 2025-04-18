@@ -1,5 +1,7 @@
 pipeline {
-    agent any  // Use any available agent, including the master
+    agent {
+        label 'multiarch'  // Specify that this pipeline should run on an agent with the 'multiarch' label
+    }
     options {
             skipDefaultCheckout(true) // Skip the default checkout
         }
@@ -44,7 +46,7 @@ pipeline {
     }
     post {
             always {
-                node(null) {
+                node('multiarch') {
                     // Clean up the Buildx builder
                     sh 'docker buildx rm JenkinsAgentBuilder || true'
                 }
