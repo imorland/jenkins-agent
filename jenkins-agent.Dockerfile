@@ -80,14 +80,24 @@ FROM jenkins/inbound-agent:latest-jdk21
    echo "Optimizing for native ARM execution"\n\
    # Set ARM-specific optimizations if needed\n\
  elif [ "$AGENT_ROLE" = "arm_optimized" ] || [ "$AGENT_ROLE" = "multiarch" ]; then\n\
-   echo "Setting up enhanced QEMU for ARM builds..."\n\
-   docker run --rm --privileged tonistiigi/binfmt:latest --install arm64 || docker run --rm --privileged multiarch/qemu-user-static --reset -p yes\n\
-   # Optimize system for QEMU performance\n\
-   echo 10 > /proc/sys/vm/nr_hugepages || true\n\
-   echo 1024 > /proc/sys/vm/max_map_count || true\n\
-   echo 1 > /proc/sys/vm/overcommit_memory || true\n\
-   # Increase shared memory for ARM builds\n\
-   mount -o remount,size=4G /dev/shm || true\n\
+   # Setup QEMU for cross-architecture builds based on AGENT_ROLE and host architecture\n\
+   HOST_ARCH=$(uname -m)\n\
+   echo "Host architecture: $HOST_ARCH"\n\
+   if [ "$HOST_ARCH" = "x86_64" ]; then\n\
+     # x86_64 host needs QEMU for ARM64 builds\n\
+     echo "Setting up QEMU for ARM64 builds on x86_64 host..."\n\
+     docker run --rm --privileged tonistiigi/binfmt:latest --install arm64 || docker run --rm --privileged multiarch/qemu-user-static --reset -p yes\n\
+     # Optimize system for QEMU performance\n\
+     echo 10 > /proc/sys/vm/nr_hugepages || true\n\
+     echo 1024 > /proc/sys/vm/max_map_count || true\n\
+     echo 1 > /proc/sys/vm/overcommit_memory || true\n\
+     # Increase shared memory for ARM builds\n\
+     mount -o remount,size=4G /dev/shm || true\n\
+   elif [ "$HOST_ARCH" = "aarch64" ]; then\n\
+     # ARM64 host needs QEMU for x86_64 builds\n\
+     echo "Setting up QEMU for x86_64 builds on ARM64 host..."\n\
+     docker run --rm --privileged --platform linux/arm64 tonistiigi/binfmt:latest --install amd64 || true\n\
+   fi\n\
  fi\n\
  \n\
  # Execute the original entrypoint\n\
