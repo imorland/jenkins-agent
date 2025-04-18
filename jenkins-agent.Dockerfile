@@ -69,8 +69,13 @@ FROM jenkins/inbound-agent:latest-jdk21
  echo "Checking Git configuration:"\n\
  sudo -u jenkins git config --list\n\
  \n\
- # Setup QEMU for better ARM emulation based on AGENT_ROLE environment variable\n\
- if [ "$AGENT_ROLE" = "arm_optimized" ] || [ "$AGENT_ROLE" = "multiarch" ]; then\n\
+ # Setup based on AGENT_ROLE environment variable\n\
+ if [ "$AGENT_ROLE" = "arm" ]; then\n\
+   echo "Running on native ARM hardware, no emulation needed..."\n\
+   # Optimize system for native ARM performance\n\
+   echo "Optimizing for native ARM execution"\n\
+   # Set ARM-specific optimizations if needed\n\
+ elif [ "$AGENT_ROLE" = "arm_optimized" ] || [ "$AGENT_ROLE" = "multiarch" ]; then\n\
    echo "Setting up enhanced QEMU for ARM builds..."\n\
    docker run --rm --privileged tonistiigi/binfmt:latest --install arm64 || docker run --rm --privileged multiarch/qemu-user-static --reset -p yes\n\
    # Optimize system for QEMU performance\n\
