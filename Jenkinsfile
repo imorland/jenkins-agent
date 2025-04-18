@@ -30,6 +30,7 @@ pipeline {
         stage('Build and Push Jenkins Agent Image') {
             steps {
                 script {
+                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                     sh '''
                     docker buildx build \
                         --platform linux/amd64,linux/arm64 \
