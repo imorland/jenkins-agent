@@ -62,6 +62,9 @@ FROM jenkins/inbound-agent:latest-jdk21
  chown -R jenkins:jenkins /home/jenkins/agent\n\
  chmod -R 755 /home/jenkins/agent\n\
  \n\
+ # Run ARM Git fixes\n\
+ /usr/local/bin/fix-git-arm.sh\n\
+ \n\
  # Fix Git safe.directory configuration for the workspace\n\
  sudo -u jenkins git config --global --add safe.directory "*"\n\
  sudo -u jenkins git config --global --add safe.directory "/home/jenkins/agent/workspace"\n\
@@ -103,6 +106,24 @@ FROM jenkins/inbound-agent:latest-jdk21
  [safe]\n\
      directory = *" > /home/jenkins/.gitconfig && \
      chown jenkins:jenkins /home/jenkins/.gitconfig
+
+ # Enhance Git configuration for ARM compatibility
+ RUN echo '#!/bin/bash\n\
+ # Fix Git permissions and configuration for ARM\n\
+ if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then\n\
+   # ARM-specific Git fixes\n\
+   echo "Applying ARM-specific Git configuration..."\n\
+   # Ensure Git can handle the workspace properly on ARM\n\
+   git config --system core.preloadIndex true\n\
+   git config --system core.fscache true\n\
+   git config --system core.untrackedCache true\n\
+   # Disable Git safe directory checks which can cause issues on ARM\n\
+   git config --system --unset safe.directory || true\n\
+   git config --system --add safe.directory "*"\n\
+   # Fix permissions for Git operations\n\
+   find /home/jenkins -type d -name ".git" -exec chmod -R 755 {} \\; 2>/dev/null || true\n\
+ fi' > /usr/local/bin/fix-git-arm.sh && \
+     chmod +x /usr/local/bin/fix-git-arm.sh
 
  # Switch back to jenkins user
  USER jenkins
