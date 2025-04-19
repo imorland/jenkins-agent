@@ -92,7 +92,7 @@ FROM jenkins/inbound-agent:latest-jdk21
      echo 1024 > /proc/sys/vm/max_map_count || true\n\
      echo 1 > /proc/sys/vm/overcommit_memory || true\n\
      # Increase shared memory for ARM builds\n\
-     mount -o remount,size=4G /dev/shm || true\n\
+     mount -o remount,size=8G /dev/shm || true\n\
    elif [ "$HOST_ARCH" = "aarch64" ]; then\n\
      # ARM64 host needs QEMU for x86_64 builds\n\
      echo "Setting up QEMU for x86_64 builds on ARM64 host..."\n\
